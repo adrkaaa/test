@@ -1,0 +1,307 @@
+Option Compare Database
+Option Explicit
+
+Public Sub CreateDatabaseStructure()
+
+    Dim db As DAO.Database
+    Dim rel As DAO.Relation
+
+    Set db = CurrentDb
+
+    ' =========================
+    ' УДАЛЕНИЕ СТАРЫХ ТАБЛИЦ
+    ' =========================
+
+    On Error Resume Next
+
+    db.Execute "DROP TABLE [Заказы Продукции]"
+    db.Execute "DROP TABLE [Заказы]"
+    db.Execute "DROP TABLE [Товары]"
+    db.Execute "DROP TABLE [Пользователи]"
+    db.Execute "DROP TABLE [Контрагенты]"
+    db.Execute "DROP TABLE [Типы товаров]"
+    db.Execute "DROP TABLE [Категории]"
+    db.Execute "DROP TABLE [Единицы измерения]"
+    db.Execute "DROP TABLE [Роли]"
+    db.Execute "DROP TABLE [Статусы заказа]"
+    db.Execute "DROP TABLE [Пункты выдачи]"
+
+    On Error GoTo 0
+
+
+    ' =========================
+    ' КОНТРАГЕНТЫ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Контрагенты] (" & _
+        "[id_contragent] AUTOINCREMENT CONSTRAINT [PK_Контрагенты] PRIMARY KEY, " & _
+        "[Наименование] TEXT(255)" & _
+        ")"
+
+
+    ' =========================
+    ' ТИПЫ ТОВАРОВ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Типы товаров] (" & _
+        "[id_types] AUTOINCREMENT CONSTRAINT [PK_Типы товаров] PRIMARY KEY, " & _
+        "[Наименование] TEXT(255)" & _
+        ")"
+
+
+    ' =========================
+    ' КАТЕГОРИИ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Категории] (" & _
+        "[id_category] AUTOINCREMENT CONSTRAINT [PK_Категории] PRIMARY KEY, " & _
+        "[Наименование] TEXT(255)" & _
+        ")"
+
+
+    ' =========================
+    ' ЕДИНИЦЫ ИЗМЕРЕНИЯ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Единицы измерения] (" & _
+        "[id_unit] AUTOINCREMENT CONSTRAINT [PK_Единицы] PRIMARY KEY, " & _
+        "[Наименование] TEXT(100)" & _
+        ")"
+
+
+    ' =========================
+    ' РОЛИ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Роли] (" & _
+        "[id_role] AUTOINCREMENT CONSTRAINT [PK_Роли] PRIMARY KEY, " & _
+        "[Наименование] TEXT(100)" & _
+        ")"
+
+
+    ' =========================
+    ' СТАТУСЫ ЗАКАЗА
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Статусы заказа] (" & _
+        "[id_order_status] AUTOINCREMENT CONSTRAINT [PK_Статусы] PRIMARY KEY, " & _
+        "[Наименование] TEXT(100)" & _
+        ")"
+
+
+    ' =========================
+    ' ПУНКТЫ ВЫДАЧИ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Пункты выдачи] (" & _
+        "[id_point] AUTOINCREMENT CONSTRAINT [PK_Пункты] PRIMARY KEY, " & _
+        "[Наименование] TEXT(255)" & _
+        ")"
+
+
+    ' =========================
+    ' ПОЛЬЗОВАТЕЛИ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Пользователи] (" & _
+        "[id_user] AUTOINCREMENT CONSTRAINT [PK_Пользователи] PRIMARY KEY, " & _
+        "[Наименование] TEXT(255), " & _
+        "[Роль] LONG" & _
+        ")"
+
+
+    ' =========================
+    ' ТОВАРЫ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Товары] (" & _
+        "[id_articul] AUTOINCREMENT CONSTRAINT [PK_Товары] PRIMARY KEY, " & _
+        "[Наименование] TEXT(255), " & _
+        "[Поставщик] LONG, " & _
+        "[Цена] CURRENCY, " & _
+        "[Тип товара] LONG, " & _
+        "[Категория] LONG, " & _
+        "[Единица измерения] LONG, " & _
+        "[Остаток] LONG, " & _
+        "[Описание] LONGTEXT, " & _
+        "[Фото] TEXT(255)" & _
+        ")"
+
+
+    ' =========================
+    ' ЗАКАЗЫ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Заказы] (" & _
+        "[id_number] AUTOINCREMENT CONSTRAINT [PK_Заказы] PRIMARY KEY, " & _
+        "[Дата] DATETIME, " & _
+        "[Клиент] LONG, " & _
+        "[Дата выполнения] DATETIME, " & _
+        "[Код для получения] TEXT(50), " & _
+        "[Статус заказа] LONG, " & _
+        "[Пункт выдачи] LONG" & _
+        ")"
+
+
+    ' =========================
+    ' ЗАКАЗЫ ПРОДУКЦИИ
+    ' =========================
+
+    db.Execute _
+        "CREATE TABLE [Заказы Продукции] (" & _
+        "[id_order] LONG NOT NULL, " & _
+        "[Номер товара] LONG NOT NULL, " & _
+        "[Количество] LONG, " & _
+        "[Цена] CURRENCY, " & _
+        "[Сумма] CURRENCY, " & _
+        "[Продукт] LONG" & _
+        ")"
+
+
+    ' =========================
+    ' СОЗДАНИЕ СОСТАВНОГО PK
+    ' =========================
+
+    db.Execute _
+        "ALTER TABLE [Заказы Продукции] " & _
+        "ADD CONSTRAINT [PK_ЗаказыПродукции] " & _
+        "PRIMARY KEY ([id_order], [Продукт])"
+
+
+    ' =========================
+    ' СВЯЗИ
+    ' =========================
+
+    ' Пользователи -> Роли
+    Set rel = db.CreateRelation( _
+        "FK_Пользователи_Роли", _
+        "Роли", _
+        "Пользователи", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_role")
+    rel.Fields("id_role").ForeignName = "Роль"
+    db.Relations.Append rel
+
+
+    ' Товары -> Контрагенты
+    Set rel = db.CreateRelation( _
+        "FK_Товары_Контрагенты", _
+        "Контрагенты", _
+        "Товары", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_contragent")
+    rel.Fields("id_contragent").ForeignName = "Поставщик"
+    db.Relations.Append rel
+
+
+    ' Товары -> Типы товаров
+    Set rel = db.CreateRelation( _
+        "FK_Товары_Типы", _
+        "Типы товаров", _
+        "Товары", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_types")
+    rel.Fields("id_types").ForeignName = "Тип товара"
+    db.Relations.Append rel
+
+
+    ' Товары -> Категории
+    Set rel = db.CreateRelation( _
+        "FK_Товары_Категории", _
+        "Категории", _
+        "Товары", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_category")
+    rel.Fields("id_category").ForeignName = "Категория"
+    db.Relations.Append rel
+
+
+    ' Товары -> Единицы измерения
+    Set rel = db.CreateRelation( _
+        "FK_Товары_Единицы", _
+        "Единицы измерения", _
+        "Товары", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_unit")
+    rel.Fields("id_unit").ForeignName = "Единица измерения"
+    db.Relations.Append rel
+
+
+    ' Заказы -> Пользователи
+    Set rel = db.CreateRelation( _
+        "FK_Заказы_Пользователи", _
+        "Пользователи", _
+        "Заказы", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_user")
+    rel.Fields("id_user").ForeignName = "Клиент"
+    db.Relations.Append rel
+
+
+    ' Заказы -> Статусы
+    Set rel = db.CreateRelation( _
+        "FK_Заказы_Статусы", _
+        "Статусы заказа", _
+        "Заказы", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_order_status")
+    rel.Fields("id_order_status").ForeignName = "Статус заказа"
+    db.Relations.Append rel
+
+
+    ' Заказы -> Пункты выдачи
+    Set rel = db.CreateRelation( _
+        "FK_Заказы_Пункты", _
+        "Пункты выдачи", _
+        "Заказы", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_point")
+    rel.Fields("id_point").ForeignName = "Пункт выдачи"
+    db.Relations.Append rel
+
+
+    ' Заказы продукции -> Заказы
+    Set rel = db.CreateRelation( _
+        "FK_ЗаказыПродукции_Заказы", _
+        "Заказы", _
+        "Заказы Продукции", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_number")
+    rel.Fields("id_number").ForeignName = "id_order"
+    db.Relations.Append rel
+
+
+    ' Заказы продукции -> Товары
+    Set rel = db.CreateRelation( _
+        "FK_ЗаказыПродукции_Товары", _
+        "Товары", _
+        "Заказы Продукции", _
+        dbRelationUpdateCascade)
+
+    rel.Fields.Append rel.CreateField("id_articul")
+    rel.Fields("id_articul").ForeignName = "Продукт"
+    db.Relations.Append rel
+
+
+    MsgBox "Готово! Таблицы и связи созданы.", vbInformation
+
+End Sub
