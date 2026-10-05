@@ -1,0 +1,64 @@
+CREATE TABLE ПОЛЬЗОВАТЕЛЬ (
+    id_пользователя PRIMARY KEY,
+    логин,
+    фамилия,
+    имя,
+    отчество,
+    роль
+);
+
+CREATE TABLE КАТЕГОРИЯ (
+    id_категории PRIMARY KEY,
+    название
+);
+
+CREATE TABLE ПОДКАТЕГОРИЯ (
+    id_подкатегории PRIMARY KEY,
+    id_категории,
+    название,
+    FOREIGN KEY (id_категории) REFERENCES КАТЕГОРИЯ(id_категории)
+);
+
+CREATE TABLE ПРОИЗВОДИТЕЛЬ (
+    id_производителя PRIMARY KEY,
+    название
+);
+
+CREATE TABLE ТОВАР (
+    id_товара PRIMARY KEY,
+    id_подкатегории,
+    id_производителя,
+    наименование,
+    изображение,
+    состав,
+    описание,
+    цена,
+    FOREIGN KEY (id_подкатегории) REFERENCES ПОДКАТЕГОРИЯ(id_подкатегории),
+    FOREIGN KEY (id_производителя) REFERENCES ПРОИЗВОДИТЕЛЬ(id_производителя)
+);
+
+CREATE TABLE РАЗМЕР_ТОВАРА (
+    id_размера_товара PRIMARY KEY,
+    id_товара,
+    размер,
+    количество,
+    FOREIGN KEY (id_товара) REFERENCES ТОВАР(id_товара)
+);
+
+CREATE TABLE ЗАКАЗ (
+    id_заказа PRIMARY KEY,
+    id_пользователя,
+    дата_заказа,
+    итоговая_сумма,
+    FOREIGN KEY (id_пользователя) REFERENCES ПОЛЬЗОВАТЕЛЬ(id_пользователя)
+);
+
+CREATE TABLE СОСТАВ_ЗАКАЗА (
+    id_позиции_заказа PRIMARY KEY,
+    id_заказа,
+    id_размера_товара,
+    количество,
+    цена,
+    FOREIGN KEY (id_заказа) REFERENCES ЗАКАЗ(id_заказа),
+    FOREIGN KEY (id_размера_товара) REFERENCES РАЗМЕР_ТОВАРА(id_размера_товара)
+);
