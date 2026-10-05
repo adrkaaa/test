@@ -1,5 +1,5 @@
 CREATE TABLE ПОЛЬЗОВАТЕЛЬ (
-    id_пользователя PRIMARY KEY,
+    id_пользователя PK,
     логин,
     фамилия,
     имя,
@@ -8,57 +8,50 @@ CREATE TABLE ПОЛЬЗОВАТЕЛЬ (
 );
 
 CREATE TABLE КАТЕГОРИЯ (
-    id_категории PRIMARY KEY,
+    id_категории PK,
     название
 );
 
 CREATE TABLE ПОДКАТЕГОРИЯ (
-    id_подкатегории PRIMARY KEY,
-    id_категории,
-    название,
-    FOREIGN KEY (id_категории) REFERENCES КАТЕГОРИЯ(id_категории)
+    id_подкатегории PK,
+    id_категории FK,
+    название
 );
 
 CREATE TABLE ПРОИЗВОДИТЕЛЬ (
-    id_производителя PRIMARY KEY,
+    id_производителя PK,
     название
 );
 
 CREATE TABLE ТОВАР (
-    id_товара PRIMARY KEY,
-    id_подкатегории,
-    id_производителя,
+    id_товара PK,
+    id_подкатегории FK,
+    id_производителя FK,
     наименование,
     изображение,
     состав,
     описание,
-    цена,
-    FOREIGN KEY (id_подкатегории) REFERENCES ПОДКАТЕГОРИЯ(id_подкатегории),
-    FOREIGN KEY (id_производителя) REFERENCES ПРОИЗВОДИТЕЛЬ(id_производителя)
+    цена
 );
 
 CREATE TABLE РАЗМЕР_ТОВАРА (
-    id_размера_товара PRIMARY KEY,
-    id_товара,
+    id_размера_товара PK,
+    id_товара FK,
     размер,
-    количество,
-    FOREIGN KEY (id_товара) REFERENCES ТОВАР(id_товара)
+    количество
 );
 
 CREATE TABLE ЗАКАЗ (
-    id_заказа PRIMARY KEY,
-    id_пользователя,
+    id_заказа PK,
+    id_пользователя FK,
     дата_заказа,
-    итоговая_сумма,
-    FOREIGN KEY (id_пользователя) REFERENCES ПОЛЬЗОВАТЕЛЬ(id_пользователя)
+    итоговая_сумма
 );
 
 CREATE TABLE СОСТАВ_ЗАКАЗА (
-    id_позиции_заказа PRIMARY KEY,
-    id_заказа,
-    id_размера_товара,
+    id_позиции_заказа PK,
+    id_заказа FK,
+    id_размера_товара FK,
     количество,
-    цена,
-    FOREIGN KEY (id_заказа) REFERENCES ЗАКАЗ(id_заказа),
-    FOREIGN KEY (id_размера_товара) REFERENCES РАЗМЕР_ТОВАРА(id_размера_товара)
+    цена
 );
